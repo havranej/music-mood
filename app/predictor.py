@@ -29,9 +29,9 @@ STDS = torch.Tensor([0.0713, 0.0431, 0.2312, 0.0765, 0.0477, 0.6339, 0.0172, 0.1
          0.0106, 0.0173, 0.0341, 0.0096, 0.0145])
 
 
-class Forked_GRU(nn.Module):
+class ForkedGRU(nn.Module):
     def __init__(self, hidden_size, num_layers = 1, p_dropout = 0, bidirectional = False):
-        super(Forked_GRU, self).__init__()
+        super(ForkedGRU, self).__init__()
         self.hidden_size = hidden_size
         self.num_layers = num_layers
         self.bidirectional = bidirectional
@@ -60,6 +60,46 @@ class Forked_GRU(nn.Module):
         return a, v
 
 
+
+class BranchGRU(nn.Module):
+  def __init__(self, hidden_size, num_layers = 1, p_dropout = 0):
+    super(BranchGRU, self).__init__()
+    self.hidden_size = hidden_size
+    self.num_layers = num_layers
+
+    self.GRU = nn.GRU(68, hidden_size, num_layers = num_layers, batch_first = True, dropout = p_dropout if num_layers > 1 else 0)
+
+    self.FC = nn.Sequential(
+        nn.ReLU(),
+        nn.Dropout(p = p_dropout),
+        nn.Linear(hidden_size, 20),
+        nn.ReLU(),
+        nn.Linear(20, 5),
+        nn.ReLU(),
+        nn.Linear(5, 1),
+        nn.Tanh()
+    )
+  
+  def forward(self, x):
+    x, _ = self.GRU(x)
+    x = x[:,-1,:] # Taking the final output only
+    x = self.FC(x)
+    return x.flatten()
+
+    
+class ParallelGRU(nn.Module):
+  def __init__(self, hidden_size, num_layers = 1, p_dropout = 0):
+    super(ParallelGRU, self).__init__()
+    self.arousal_model = BranchGRU(hidden_size, num_layers, p_dropout)
+    self.valence_model = BranchGRU(hidden_size, num_layers, p_dropout)
+
+  def forward(self, x):
+    a = self.arousal_model(x)
+    v = self.valence_model(x)
+    return a, v
+
+
+
 class Ensemble():
     def __init__(self, models = []):
         self.models = models
@@ -74,9 +114,12 @@ class Ensemble():
         v_prediction = torch.stack(v_preds).mean(dim = 0)
         return a_prediction, v_prediction
 
-    def load_models(self, dir, n_models):
+    def load_models(self, dir, n_models, forked):
         for i in range(n_models):
-            model = Forked_GRU(hidden_size = 30, num_layers = 1, p_dropout = 0.25)
+            if forked:
+                model = ForkedGRU(hidden_size = 30, num_layers = 1, p_dropout = 0.25)
+            else:
+                model = ParallelGRU(hidden_size = 30, num_layers = 1, p_dropout = 0.25)
             model.load_state_dict(torch.load(os.path.join(dir, f"model{i}.zip"), map_location = torch.device("cpu")))
             model.eval()
             self.models.append(model)
