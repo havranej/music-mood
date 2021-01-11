@@ -68,8 +68,8 @@ class MainFrame():
         self.window.border()
 
         self.draw_ear()
-        self.window.addstr(self.BAR_Y_OFFSET - 1,  self.BAR_X_OFFSET, "Current values")
-        self.window.addstr(self.BAR_Y_OFFSET + self.Y_GAP, self.BAR_X_OFFSET, "Running values")
+        self.window.addstr(self.BAR_Y_OFFSET - 1,  self.BAR_X_OFFSET, "Current values", curses.A_BOLD)
+        self.window.addstr(self.BAR_Y_OFFSET + self.Y_GAP, self.BAR_X_OFFSET, "Running values", curses.A_BOLD)
         
         self.window.refresh()
 
@@ -96,6 +96,14 @@ class MainFrame():
 
     def print_rgb(self, rgb, colorname = ""):
         # rgb = [str(x) for x in rgb]
-        self.window.addstr(self.BAR_Y_OFFSET + 2*self.Y_GAP + 3, self.BAR_X_OFFSET, "RGB")
+        self.window.addstr(self.BAR_Y_OFFSET + 2*self.Y_GAP + 3, self.BAR_X_OFFSET, "RGB", curses.A_BOLD)
         self.window.addstr(self.BAR_Y_OFFSET + 2*self.Y_GAP + 4, self.BAR_X_OFFSET, f"{rgb[0]:3d} {rgb[1]:3d} {rgb[2]:3d} {colorname:>38}")
+        self.window.refresh()
+
+    def print_port(self, port):
+        if not port:
+            port = "None"
+            
+        self.window.addstr(self.BAR_Y_OFFSET + 3*self.Y_GAP + 3, self.BAR_X_OFFSET, "Port", curses.A_BOLD)
+        self.window.addstr(self.BAR_Y_OFFSET + 3*self.Y_GAP + 4, self.BAR_X_OFFSET, port)
         self.window.refresh()

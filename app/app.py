@@ -3,6 +3,8 @@ import numpy as np
 import struct
 import curses
 import argparse
+import serial
+
 
 from pyAudioAnalysis import ShortTermFeatures
 
@@ -72,8 +74,14 @@ def main(stdscr, args):
     mainframe_y = max([mainframe_y, 0])
 
     mainframe = ui.MainFrame(mainframe_y, mainframe_x)
+    mainframe.print_port(args.port)
 
-    #Colormap init
+    # Serial communication init
+    if args.port:
+        baudrate = 9600
+        serial_comm = serial.Serial(args.port, baudrate)
+
+    # Colormap init
     cm = ColorMapper(args.colormap)
 
     a_rolling, v_rolling = 0.5, 0.5
@@ -97,8 +105,8 @@ def main(stdscr, args):
         colorname = cm.rgb_to_name(rgb)
         mainframe.print_rgb(rgb, colorname)
 
-        # print(f"Arousal: {a_rolling:.4f} Valence: {v_rolling:.4f} || Arousal: {a_current:.4f} Valence: {v_current:.4f}")
-
+        if args.port:
+            serial_comm.write(bytes([1] + list(rgb)))
 
 if __name__ == "__main__":
     args = parse_arguments()
