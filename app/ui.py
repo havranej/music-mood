@@ -93,3 +93,9 @@ class MainFrame():
 
     def set_bar_value(self, bar_id, value, text = ""):
         self.bars[bar_id].show_value(value, text)
+
+    def print_rgb(self, rgb, colorname = ""):
+        # rgb = [str(x) for x in rgb]
+        self.window.addstr(self.BAR_Y_OFFSET + 2*self.Y_GAP + 3, self.BAR_X_OFFSET, "RGB")
+        self.window.addstr(self.BAR_Y_OFFSET + 2*self.Y_GAP + 4, self.BAR_X_OFFSET, f"{rgb[0]:3d} {rgb[1]:3d} {rgb[2]:3d} {colorname:>38}")
+        self.window.refresh()

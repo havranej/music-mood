@@ -7,6 +7,7 @@ import curses
 from pyAudioAnalysis import ShortTermFeatures
 
 from predictor import Ensemble
+from colormapper import ColorMapper
 import ui
 
 BUFFER_SIZE = 3.0 # Buffer size in seconds
@@ -38,6 +39,7 @@ def scale_value(value):
 
 
 def main(stdscr):
+    # Audio init
     ensemble = Ensemble()
     ensemble.load_models("./models", n_models = 5)
 
@@ -62,6 +64,9 @@ def main(stdscr):
 
     mainframe = ui.MainFrame(mainframe_y, mainframe_x)
 
+    #Colormap init
+    cm = ColorMapper("colormap4.png")
+
     a_rolling, v_rolling = 0.5, 0.5
 
     while True:
@@ -78,6 +83,10 @@ def main(stdscr):
 
         mainframe.set_bar_value("a_rolling", int(a_rolling * 50), f"Arousal: {a_rolling:.4f}")
         mainframe.set_bar_value("v_rolling", int(v_rolling * 50), f"Valence: {v_rolling:.4f}")
+
+        rgb = cm.get_color(a_rolling, v_rolling)
+        colorname = cm.rgb_to_name(rgb)
+        mainframe.print_rgb(rgb, colorname)
 
         # print(f"Arousal: {a_rolling:.4f} Valence: {v_rolling:.4f} || Arousal: {a_current:.4f} Valence: {v_current:.4f}")
 
