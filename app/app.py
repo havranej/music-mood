@@ -2,7 +2,7 @@ import pyaudio
 import numpy as np
 import struct
 import curses
-
+import argparse
 
 from pyAudioAnalysis import ShortTermFeatures
 
@@ -38,10 +38,19 @@ def scale_value(value):
     return value
 
 
-def main(stdscr):
+def parse_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--port", type=str, help="Arduino serial port")
+    parser.add_argument("--colormap", type=str, help="Picture mapping arousal x valence values to color space", default = "colormap.png")
+    args = parser.parse_args()
+    return args
+
+
+def main(stdscr, args):
+
     # Audio init
     ensemble = Ensemble()
-    ensemble.load_models("./models", n_models = 5)
+    ensemble.load_models("./models/parallel", n_models = 5, forked = False)
 
     pa = pyaudio.PyAudio()
     stream = pa.open(format=pyaudio.paInt16, channels = 1, rate = FS,
@@ -65,7 +74,7 @@ def main(stdscr):
     mainframe = ui.MainFrame(mainframe_y, mainframe_x)
 
     #Colormap init
-    cm = ColorMapper("colormap4.png")
+    cm = ColorMapper(args.colormap)
 
     a_rolling, v_rolling = 0.5, 0.5
 
@@ -90,7 +99,10 @@ def main(stdscr):
 
         # print(f"Arousal: {a_rolling:.4f} Valence: {v_rolling:.4f} || Arousal: {a_current:.4f} Valence: {v_current:.4f}")
 
-try:
-    curses.wrapper(main)
-except KeyboardInterrupt:
-    pass
+
+if __name__ == "__main__":
+    args = parse_arguments()
+    try:
+        curses.wrapper(main, args = args)
+    except KeyboardInterrupt:
+        pass
