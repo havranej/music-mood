@@ -24,7 +24,7 @@ EAR = [
 ]
 
 
-HEIGHT, WIDTH = 25, 100
+HEIGHT, WIDTH = 26, 98
 BAR_WIDTH = 51
 
 
@@ -70,6 +70,8 @@ class MainFrame():
         self.draw_ear()
         self.window.addstr(self.BAR_Y_OFFSET - 1,  self.BAR_X_OFFSET, "Current values", curses.A_BOLD)
         self.window.addstr(self.BAR_Y_OFFSET + self.Y_GAP, self.BAR_X_OFFSET, "Running values", curses.A_BOLD)
+        self.window.addstr(self.BAR_Y_OFFSET + 4*self.Y_GAP + 4, self.BAR_X_OFFSET, "Ctrl+C to exit")
+
         
         self.window.refresh()
 
